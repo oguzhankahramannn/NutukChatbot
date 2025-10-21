@@ -1,3 +1,14 @@
+---
+title: Nutuk Danışmanı Chatbot
+emoji: 📜
+colorFrom: pink
+colorTo: yellow
+sdk: gradio
+app_file: app.py
+python_version: "3.11"
+license: mit
+---
+
 # 📜 Nutuk Danışmanı Chatbot
 
 Nutuk Danışmanı, Mustafa Kemal Atatürk'ün Nutuk eseri ve ilgili temel tarihsel bilgiler üzerinde eğitilmiş, yapay zeka tabanlı bir Soru-Cevap uygulamasıdır. Retrieval Augmented Generation (RAG) mimarisi kullanılarak geliştirilen bu proje, tarih araştırmacılarının, öğrencilerin ve meraklıların Nutuk'un zengin içeriğinde kolayca arama yapmasını ve sorularına doğrudan metinden kanıta dayalı cevaplar almasını sağlar.
