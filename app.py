@@ -32,8 +32,8 @@ if not os.path.exists(persist_directory):
     json_documents = json_loader.load()
 
     #  TXT dosyasını yükle
-    print("2. Kaynak (ek_bilgiler.txt) yükleniyor...")
-    text_loader = TextLoader("ek_bilgiler.txt", encoding="utf-8")
+    print("2. Kaynak (ekveriler.txt) yükleniyor...")
+    text_loader = TextLoader("ekveriler.txt", encoding="utf-8")
     text_documents = text_loader.load()
 
     # İki kaynaktan gelen dokümanları birleştir
