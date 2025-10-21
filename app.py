@@ -1,9 +1,9 @@
-# Bu kod, veritabanının var olup olmadığını kontrol eder.
-# Eğer yoksa oluşturur, varsa direkt yükler.
 import os
 import gradio as gr
 from dotenv import load_dotenv
-from langchain_community.document_loaders import JSONLoader
+
+# İki farklı dosya türünü okumak için TextLoader'ı da ekliyoruz
+from langchain_community.document_loaders import JSONLoader, TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -17,20 +17,32 @@ if "GOOGLE_API_KEY" not in os.environ:
 llm = ChatGoogleGenerativeAI(model="models/gemini-2.0-flash")
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-# --- YENİ MANTIK BURADA ---
 persist_directory = "./chroma_db"
 if not os.path.exists(persist_directory):
     print("Veritabanı bulunamadı, sıfırdan oluşturuluyor... Bu işlem birkaç dakika sürebilir.")
-    loader = JSONLoader(file_path='nutuk_lora_dataset.jsonl', jq_schema='.content', json_lines=True, text_content=False)
-    documents = loader.load()
+
+    # 1. Kaynak: JSONL dosyasını yükle
+    print("1. Kaynak (nutuk_lora_dataset.jsonl) yükleniyor...")
+    json_loader = JSONLoader(file_path='nutuk_lora_dataset.jsonl', jq_schema='.content', json_lines=True, text_content=False)
+    json_documents = json_loader.load()
+
+    # 2. Kaynak: TXT dosyasını yükle
+    print("2. Kaynak (ek_bilgiler.txt) yükleniyor...")
+    text_loader = TextLoader("ekveriler.txt", encoding="utf-8")
+    text_documents = text_loader.load()
+
+    # İki kaynaktan gelen dokümanları birleştir
+    all_documents = json_documents + text_documents
+    print(f"Toplam {len(all_documents)} doküman veritabanına eklenecek.")
+
+
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
-    texts = text_splitter.split_documents(documents)
+    texts = text_splitter.split_documents(all_documents)
     vector_store = Chroma.from_documents(texts, embeddings, collection_name="nutuk-lora-chat", persist_directory=persist_directory)
     print("Veritabanı oluşturuldu ve diske kaydedildi.")
 else:
     print("Mevcut veritabanı yüklendi.")
     vector_store = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
-# --- YENİ MANTIK SONU ---
 
 qa_chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=vector_store.as_retriever())
 
