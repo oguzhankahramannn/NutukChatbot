@@ -11,22 +11,22 @@ from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import RetrievalQA
 
-#   Kurulum
+#  1. Kurulum
 load_dotenv()
 
-#
+# API anahtarını ortam değişkeninden güvenli bir şekilde alın
 gemini_api_key = os.environ.get("GOOGLE_API_KEY")
 
 if not gemini_api_key:
+    # Anahtar bulunamazsa hata fırlatılır
+    raise ValueError("GOOGLE_API_KEY bulunamadı. Lütfen ortam değişkenlerinden Secret olarak ekleyin.")
 
-    raise ValueError("GOOGLE_API_KEY bulunamadı. Lütfen Hugging Face Space ayarlarından Secret olarak ekleyin.")
-
-#
-#
+# LLM'i anahtarı doğrudan ileterek başlatın (Hugging Face ve Render için kritik)
+# KRİTİK: Sorgu zaman aşımını 120 saniyeye çıkarıyoruz.
 llm = ChatGoogleGenerativeAI(
     model="models/gemini-2.0-flash",
     google_api_key=gemini_api_key,
-    request_options={"timeout": 120}  # Zaman aşımı süresini 120 saniyeye ayarla
+    request_options={"timeout": 120}  # Zaman aşımı süresi
 )
 
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -37,7 +37,7 @@ if not os.path.exists(persist_directory):
     print("Veritabanı bulunamadı, sıfırdan oluşturuluyor... Bu işlem birkaç dakika sürebilir.")
 
     #  JSONL dosyasını yükle
-    print("1. Kaynak (nutuk_lora_dataset.jsonl) yükleniyor...")
+    print("1. Kaynak (nutuk_lora_dæataset.jsonl) yükleniyor...")
     json_loader = JSONLoader(file_path='nutuk_lora_dataset.jsonl', jq_schema='.content', json_lines=True,
                              text_content=False)
     json_documents = json_loader.load()
@@ -67,7 +67,6 @@ qa_chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=ve
 
 # Gradio Arayüzü
 def get_rag_response(question):
-    # Bu aşamada hata alırsanız, zaman aşımı hatası buradan gelir.
     result = qa_chain.invoke({"query": question})
     return result['result']
 
@@ -95,4 +94,6 @@ iface = gr.Interface(
     allow_flagging="never"
 )
 
-iface.launch()
+#  RENDER PORT AYARI
+PORT = int(os.environ.get('PORT', 8080)) # PORT değişkenini oku, yoksa 8080 kullan
+iface.launch(server_name='0.0.0.0', server_port=PORT)
