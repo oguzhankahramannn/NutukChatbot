@@ -70,10 +70,9 @@ def get_rag_response(question):
 
 
 example_questions = [
-    "Nutuk'un yazarı kimdir?",
+    
     "Atatürk'ün doğum yılı nedir?",
-    "Bandırma vapuruyla Samsun'a çıkılma tarihi ?",
-    "Amasya Genelgesi'nin önemi nedir?"
+    
 ]
 soft_theme = themes.Soft(primary_hue="neutral", secondary_hue="neutral")
 
