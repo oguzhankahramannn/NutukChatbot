@@ -82,8 +82,6 @@ iface = gr.Interface(
     examples=example_questions,
     submit_btn="Gönder",
     clear_btn="Temizle",
-
-
     allow_flagging="never"
 )
 
