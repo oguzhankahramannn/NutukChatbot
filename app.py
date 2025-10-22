@@ -14,20 +14,24 @@ from langchain.chains import RetrievalQA
 #   Kurulum
 load_dotenv()
 
-# API anahtarını ortam değişkeninden güvenli bir şekilde alın
+#
 gemini_api_key = os.environ.get("GOOGLE_API_KEY")
 
 if not gemini_api_key:
 
     raise ValueError("GOOGLE_API_KEY bulunamadı. Lütfen Hugging Face Space ayarlarından Secret olarak ekleyin.")
 
-# LLM'i anahtarı doğrudan ileterek başlatma
-llm = ChatGoogleGenerativeAI(model="models/gemini-2.0-flash",
-                             google_api_key=gemini_api_key)
+#
+#
+llm = ChatGoogleGenerativeAI(
+    model="models/gemini-2.0-flash",
+    google_api_key=gemini_api_key,
+    request_options={"timeout": 120}  # Zaman aşımı süresini 120 saniyeye ayarla
+)
 
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-#  Veritabanını Kontrol Et veya Oluştur
+#  2. Veritabanını Kontrol Et veya Oluştur
 persist_directory = "./chroma_db"
 if not os.path.exists(persist_directory):
     print("Veritabanı bulunamadı, sıfırdan oluşturuluyor... Bu işlem birkaç dakika sürebilir.")
@@ -63,6 +67,7 @@ qa_chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=ve
 
 # Gradio Arayüzü
 def get_rag_response(question):
+    # Bu aşamada hata alırsanız, zaman aşımı hatası buradan gelir.
     result = qa_chain.invoke({"query": question})
     return result['result']
 
