@@ -14,15 +14,13 @@ from langchain.chains import RetrievalQA
 #  1. Kurulum
 load_dotenv()
 
-# API anahtarını ortam değişkeninden güvenli bir şekilde alın
+#
 gemini_api_key = os.environ.get("GOOGLE_API_KEY")
 
 if not gemini_api_key:
-    # Anahtar bulunamazsa hata fırlatılır
+
     raise ValueError("GOOGLE_API_KEY bulunamadı. Lütfen ortam değişkenlerinden Secret olarak ekleyin.")
 
-# LLM'i anahtarı doğrudan ileterek başlatın (Hugging Face ve Render için kritik)
-# KRİTİK: Sorgu zaman aşımını 120 saniyeye çıkarıyoruz.
 llm = ChatGoogleGenerativeAI(
     model="models/gemini-2.0-flash",
     google_api_key=gemini_api_key,
@@ -37,7 +35,7 @@ if not os.path.exists(persist_directory):
     print("Veritabanı bulunamadı, sıfırdan oluşturuluyor... Bu işlem birkaç dakika sürebilir.")
 
     #  JSONL dosyasını yükle
-    print("1. Kaynak (nutuk_lora_dæataset.jsonl) yükleniyor...")
+    print("1. Kaynak (nutuk_lora_dataset.jsonl) yükleniyor...")
     json_loader = JSONLoader(file_path='nutuk_lora_dataset.jsonl', jq_schema='.content', json_lines=True,
                              text_content=False)
     json_documents = json_loader.load()
@@ -94,6 +92,14 @@ iface = gr.Interface(
     allow_flagging="never"
 )
 
-#  RENDER PORT AYARI
-PORT = int(os.environ.get('PORT', 8080)) # PORT değişkenini oku, yoksa 8080 kullan
+
+# Render'ın dinamik olarak atadığı PORT ortam değişkenini oku.
+try:
+    # Render'ın atadığı PORT değişkenini okuyup tam sayıya çevirir. Yoksa 7860 kullanır.
+    PORT = int(os.environ.get('PORT', 7860))
+except:
+    # Çevrim hatası olursa varsayılan portu kullan
+    PORT = 7860
+
+# Gradio'yu Render'ın beklediği adreste ve portta başlatır.
 iface.launch(server_name='0.0.0.0', server_port=PORT)
