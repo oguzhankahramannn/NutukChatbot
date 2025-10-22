@@ -11,19 +11,26 @@ from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import RetrievalQA
 
-#  1. Kurulum ve Ayarlar
+#   Kurulum
 load_dotenv()
-if "GOOGLE_API_KEY" not in os.environ:
-    raise ValueError("GOOGLE_API_KEY bulunamadı.")
 
-llm = ChatGoogleGenerativeAI(model="models/gemini-2.0-flash")
+# API anahtarını ortam değişkeninden güvenli bir şekilde alın
+gemini_api_key = os.environ.get("GOOGLE_API_KEY")
+
+if not gemini_api_key:
+
+    raise ValueError("GOOGLE_API_KEY bulunamadı. Lütfen Hugging Face Space ayarlarından Secret olarak ekleyin.")
+
+# LLM'i anahtarı doğrudan ileterek başlatma
+llm = ChatGoogleGenerativeAI(model="models/gemini-2.0-flash",
+                             google_api_key=gemini_api_key)
+
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-#  2. Veritabanını Kontrol Et veya Oluştur
+#  Veritabanını Kontrol Et veya Oluştur
 persist_directory = "./chroma_db"
 if not os.path.exists(persist_directory):
     print("Veritabanı bulunamadı, sıfırdan oluşturuluyor... Bu işlem birkaç dakika sürebilir.")
-
 
     #  JSONL dosyasını yükle
     print("1. Kaynak (nutuk_lora_dataset.jsonl) yükleniyor...")
@@ -39,7 +46,6 @@ if not os.path.exists(persist_directory):
     # İki kaynaktan gelen dokümanları birleştir
     all_documents = json_documents + text_documents
     print(f"Toplam {len(all_documents)} doküman veritabanına eklenecek.")
-
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
     texts = text_splitter.split_documents(all_documents)
@@ -75,7 +81,6 @@ iface = gr.Interface(
     outputs=gr.Textbox(lines=10, label="Cevap"),
     title="📜 Nutuk Danışmanı Chatbot",
     description="Bu chatbot, nutuk metinleri dataseti ve ek temel bilgiler ile eğitilmiştir.",
-
 
     theme=soft_theme,
 
